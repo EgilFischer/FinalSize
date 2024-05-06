@@ -12,15 +12,18 @@ require(ggplot2)
 #'
 #' @description
 #' this function will first create a generation based table with states and then gives the final size distribution as output
-#' @param R
-#' @param s0in
-#' @param i0in
-#' @param r0in
+#' @param R Value of R0
+#' @param s0in Number of initial susceptibles
+#' @param i0in Number of initial infectious
+#' @param r0in Number of initial recovered
 #'
-#' @return
-#' @export
+#' @return distribution of number of individuals that were infected during the outbreak
 #'
-#' @examples
+#' @example 
+#' distFS(1, 3, 3, 0)  
+#' distFS(2, 3, 3, 0)  
+#' distFS(2, 3, 3, 1)  
+#' 
 distFS <- function(R,s0in,i0in ,r0in = NULL)
   {
 
@@ -81,18 +84,47 @@ plotFSdist <- function(R,s0in,i0in ,r0in = NULL){
 
 }
 
-#probability of final size x given R, initial susceptibles, initial infectious and initial recovered
+#, initial susceptibles, initial infectious and initial recovered
+#' @title probability of final size given R
+#'
+#' @param R Value of R0
+#' @param x Number of cases at the end of the outbreak
+#' @param s0in Number of initial susceptibles
+#' @param i0in Number of initial infectious
+#' @param r0in Number of initial recovered
+#'
+#' @return probability to observe x given other values
+#'
+#' @examples
+#' pFS(2,0,1,1)
+#' pFS(2,1,1,1)
+#' 
 pFS <- function(R,x,s0,i0){
-  #produce final size distribution for value r
+  
+  #produce final size distribution for value R
   final.size.dist <- distFS(R,s0,i0);
   #return the outcome for x
   return(prod(mapply(function(i,j)final.size.dist[i,j+1],c(1:length(s0)),x)))
 }
 
 ###Function to determine the probability of more extreme values given R####
-# r = R, x = final number of cases, s0 = initial susceptibles, i0 = initial infectious, comp = the type of extreme
-#rm(pExtremes)
-pExtremes<-  function(r,x,s0in,i0in,comp = `<`){
+#' @title Probability of extreme values given R
+#'
+#' @param R Value of R0
+#' @param x Number of cases at the end of the outbreak
+#' @param s0in Number of initial susceptibles
+#' @param i0in Number of initial infectious
+#' @param r0in Number of initial recovered
+#' @param comp Direction of comparison i.e.(`>`or`<`)
+#'
+#' @return Exact probability that x cases or more extreme are found for this value of R
+#'
+#' @examples
+#' pExtremes(1, 1, 5,5, `<`)
+#' pExtremes(1, 1, 5,5, `>`)
+#' 
+pExtremes<-  function(R,x,s0in,i0in,comp = `<`){
+  
   #create all possible outcomes of these transmission experiments
   #this means all possibilities between 0 and s0 contact infection (hence s0 + 1 options per trial)
   out <- matrix(ncol = length(s0in),nrow = prod(s0in+1))
@@ -107,8 +139,8 @@ pExtremes<-  function(r,x,s0in,i0in,comp = `<`){
                      ncol = 1,
                      nrow =prod(s0in+1))[,1]
   }
-  #produce final size distribution for value r
-  final.size.dist <- distFS(r,s0in,i0in);
+  #produce final size distribution for value R
+  final.size.dist <- distFS(R,s0in,i0in);
   #define function for this distribution for the probability of a certain number of cases x in each of the trials
   pFSloc<- function(v){
     return(prod(mapply(function(i,j) {final.size.dist[i,j+1]},
@@ -144,6 +176,30 @@ pExtremes<-  function(r,x,s0in,i0in,comp = `<`){
 # Final Size function for x cases, s0 initially susceptible and i0 initially infectious animals.
 # Optional set sigficance level alpha, onesided testing
 # max.val is the maximum value used for optimization.
+#' @title Final size analysis
+#'
+#' @param x Number of cases at the end of the outbreak (single value or vector) 
+#' @param s0 Number of initial susceptibles (single value or vector)
+#' @param i0 Number of initial infectious (single value or vector)
+#' @param comp Direction of comparison i.e.(`>`or`<`)#' @param i0 
+#' @param alpha Significance level default = 0.05
+#' @param onesided Test onesided default = FALSE
+#' @param max.val Maximum value of R for numeric optimization
+#'
+#' @return Table with estimator, confidence interval and test R<1, R>1 and R = 1
+#'  point.est     ci.ll     ci.ul pval.above1 pval.below1 pval.equal1
+#' @examples
+#' #tests for same code as Mathematica book of Mart de Jong
+#' FinalSize(c(0,0,0,0),c(2,2,2,2),c(2,2,2,2),onesided = T)
+#' FinalSize(c(2,2,2,2),c(2,2,2,2),c(2,2,2,2),onesided = T)
+#' FinalSize(c(2,1,1,0),c(2,2,2,2),c(2,2,2,2))
+#' FinalSize(c(3),c(20),c(20),max.val = 50)
+#' 
+#' FinalSize(c(7,4),c(40,19)-1, c(1,1))
+#' FinalSize(c(5,5),c(40,40)-1, c(1,1))
+#' FinalSize(c(7),c(40)-1, c(1))
+#' FinalSize(c(6,2),c(24,12)-1, c(1,1))
+#' 
 FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250){
   #check data consistency
   if(min(s0-x)<0)stop("more cases x than susceptibles s0")
@@ -153,17 +209,17 @@ FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250){
   res$point.est <- ifelse(sum(x)==0,0,
                           ifelse(sum(x)==sum(s0),Inf,
                     optimize(interval = c(0.,max.val),
-                            f = function(R){-log(pFS(R,x,s0,i0))})$minimum))
+                            f = function(R.optimize){-log(pFS(R.optimize,x,s0,i0))})$minimum))
   #determine the confidence intervals
   #if one-sided is FALSE both sides, either only lower or upper limit of CI
   #lowerlimit is found for values of R for which the probability of extremes below the observations
   res$ci.ll <- ifelse(sum(x)==0,0,
                       uniroot(interval = c(10^-10,max.val),extendInt = "yes",
-                              f = function(R){(pExtremes(R,x,s0,i0,comp = `>=`) - alpha / (2 - onesided))})$root)
+                              f = function(R.optimize){(pExtremes(R.optimize,x,s0,i0,comp = `>=`) - alpha / (2 - onesided))})$root)
   #upperlimit is found for values of R for which the probability of extremes above the observations
   res$ci.ul <- ifelse(sum(x)==sum(s0),Inf,
                       uniroot(interval = c(0,max.val),extendInt = "yes",
-                              f = function(R){( pExtremes(R,x,s0,i0,comp = `<=`) - alpha / (2 - onesided))})$root)
+                              f = function(R.optimize){( pExtremes(R.optimize,x,s0,i0,comp = `<=`) - alpha / (2 - onesided))})$root)
 
   #probability of R >= 1 is found be calculating the probability to find an equal or less positive under the assumption R0 = 1
   res$pval.above1 = pExtremes(1,x,s0,i0,comp = `<=`)
@@ -172,45 +228,6 @@ FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250){
   return(res)
 }
 
-#tests for same code as Mathematica book of Mart de Jong
-FinalSize(c(0,0,0,0),c(2,2,2,2),c(2,2,2,2),onesided = T)
-FinalSize(c(2,2,2,2),c(2,2,2,2),c(2,2,2,2),onesided = T)
-FinalSize(c(2,1,1,0),c(2,2,2,2),c(2,2,2,2))
-FinalSize(c(3),c(20),c(20),max.val = 50)
-
-FinalSize(c(7,4),c(40,19)-1, c(1,1))
-FinalSize(c(5,5),c(40,40)-1, c(1,1))
-FinalSize(c(7),c(40)-1, c(1))
-FinalSize(c(6,2),c(24,12)-1, c(1,1))
-
-data<- read.csv("./EpidemiologyAnimalInfectiousDiseases/TransmissionExperiments/HPAIfs.csv")
-
-#
-final.size <- data.frame(replicate = data$replicate,
-                         experiment = data$experiment,
-                         finalsize = data$FS/data$S0)
-final.size$ll <- final.size$finalsize - 1.96*sqrt(final.size$finalsize * (1-final.size$finalsize)/data$S0)
-final.size$ul <- final.size$finalsize + 1.96*sqrt(final.size$finalsize * (1-final.size$finalsize)/data$S0)
-final.size
-
-exact.binom <- mapply(function(x, n){binom.test(x,n)$conf.int}, data$FS, data$S0)
-t(exact.binom)
 
 
-#calculate R using the final size
-FinalSize(data$FS[data$experiment=="control"],
-          data$S0[data$experiment=="control"],
-          data$I0[data$experiment=="control"])
-FinalSize(data$FS[data$experiment=="H7N1w1"],
-          data$S0[data$experiment=="H7N1w1"],
-          data$I0[data$experiment=="H7N1w1"])
-FinalSize(data$FS[data$experiment=="H7N1w2"],
-          data$S0[data$experiment=="H7N1w2"],
-          data$I0[data$experiment=="H7N1w2"])
-FinalSize(data$FS[data$experiment=="H7N3w1"],
-          data$S0[data$experiment=="H7N3w1"],
-          data$I0[data$experiment=="H7N3w1"])
-FinalSize(data$FS[data$experiment=="H7N3w2"],
-          data$S0[data$experiment=="H7N3w2"],
-          data$I0[data$experiment=="H7N3w2"])
 
