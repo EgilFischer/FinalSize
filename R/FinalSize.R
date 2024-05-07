@@ -194,6 +194,7 @@ pExtremes<-  function(R,x,s0in,i0in,comp = `<`){
 #' @param alpha Significance level default = 0.05
 #' @param onesided Test onesided default = FALSE
 #' @param max.val Maximum value of R for numeric optimization
+#' @param decimals Number of decimals
 #'
 #' @return Table with estimator, confidence interval and test R<1, R>1 and R = 1
 #'  point.est     ci.ll     ci.ul pval.above1 pval.below1 pval.equal1
@@ -209,7 +210,7 @@ pExtremes<-  function(R,x,s0in,i0in,comp = `<`){
 #' FinalSize(c(7),c(40)-1, c(1))
 #' FinalSize(c(6,2),c(24,12)-1, c(1,1))
 #' 
-FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250){
+FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250, decimals =2){
   #check data consistency
   if(min(s0-x)<0)stop("more cases x than susceptibles s0")
   #
@@ -234,7 +235,7 @@ FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250){
   res$pval.above1 = pExtremes(1,x,s0,i0,comp = `<=`)
   res$pval.below1 = pExtremes(1,x,s0,i0,comp = `>=`)
   res$pval.equal1 = pExtremes(1,x,s0,i0,comp = `>=`) * pExtremes(1,x,s0,i0,comp = `<=`)
-  return(res)
+  return(round(res, digits = decimals))
 }
 
 
