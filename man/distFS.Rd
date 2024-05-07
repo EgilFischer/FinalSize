@@ -2,7 +2,7 @@
 % Please edit documentation in R/FinalSize.R
 \name{distFS}
 \alias{distFS}
-\title{disFSfast}
+\title{Final Size distribution for given R and intitial values}
 \usage{
 distFS(R, s0in, i0in, r0in = NULL)
 }
@@ -20,4 +20,10 @@ distribution of number of individuals that were infected during the outbreak
 }
 \description{
 this function will first create a generation based table with states and then gives the final size distribution as output
+}
+\examples{
+distFS(1, 3, 3, 0)
+distFS(2, 3, 3, 0)  
+distFS(2, 3, 3, 1)  
+
 }

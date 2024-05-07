@@ -8,7 +8,7 @@
 ######################################################################################
 require(ggplot2)
 ###
-#' @title disFSfast
+#' @title Final Size distribution for given R and intitial values
 #'
 #' @description
 #' this function will first create a generation based table with states and then gives the final size distribution as output
@@ -19,10 +19,19 @@ require(ggplot2)
 #'
 #' @return distribution of number of individuals that were infected during the outbreak
 #'
-#' @example 
-#' distFS(1, 3, 3, 0)  
+#' @examples
+#' distFS(1, 3, 3, 0)
+#' 
+#'          [,1]      [,2]      [,3]      [,4]
+#' [1,] 0.2962963 0.2825521 0.2505569 0.1705947
+#' 
 #' distFS(2, 3, 3, 0)  
+#'       [,1]   [,2]      [,3]      [,4]
+#' [1,] 0.125 0.1638 0.2552766 0.4559234
+#' 
 #' distFS(2, 3, 3, 1)  
+#'         [,1]      [,2]      [,3]      [,4]
+#'[1,] 0.156122 0.1939235 0.2688927 0.3810617
 #' 
 distFS <- function(R,s0in,i0in ,r0in = NULL)
   {
