@@ -210,7 +210,7 @@ pExtremes<-  function(R,x,s0in,i0in,comp = `<`){
 #' FinalSize(c(7),c(40)-1, c(1))
 #' FinalSize(c(6,2),c(24,12)-1, c(1,1))
 #' 
-FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250, decimals =2){
+FinalSize.Estimator<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250, decimals =2){
   #check data consistency
   if(min(s0-x)<0)stop("more cases x than susceptibles s0")
   #
@@ -238,6 +238,17 @@ FinalSize<- function(x,s0,i0, alpha = 0.05, onesided = FALSE, max.val = 250, dec
   return(round(res, digits = decimals))
 }
 
-
+#
+FinalSize<- function(x,s0,i0,group = NULL ,alpha = 0.05, onesided = FALSE, max.val = 250, decimals =2){
+  if(is.null(group))  {
+    return(FinalSize.Estimator(x,s0,i0, alpha, onesided, max.val, decimals))
+  }else{res <-NULL;
+    for(j in unique(group)){
+      #iterate over groups
+      res <-rbind(res,cbind(Group = j,FinalSize.Estimator(x[group == j],s0[group == j],i0[group == j], alpha, onesided, max.val, decimals) ))
+      }
+    }
+    return(res);
+}
 
 
