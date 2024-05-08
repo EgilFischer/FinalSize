@@ -6,9 +6,11 @@ Author: Egil Fischer <e.a.j.fischer@uu.nl>
 Maintainer: Egil Fischer <e.a.j.fischer@uu.nl>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
+    https://colab.research.google.com/drive/1LjK-onVVz1UQLux4J3fu9mqE84XpBDcd#scrollTo=Ry_3qAcR5FUd
 License: MIT
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
 Depends: 
     R (>= 2.10)
+    
